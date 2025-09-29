@@ -9,7 +9,10 @@ public class switcher : MonoBehaviour
     public int channel;
     int maxChannel = 3;
     Texture[] channelImages;
+    // Texture[] specialImages;
+    Texture errorTexture;
     MeshRenderer meshRenderer;
+    string userInput="";
 
 
     // Start is called before the first frame update
@@ -19,11 +22,20 @@ public class switcher : MonoBehaviour
         channel = 0;
 
         // 初始化裝圖片的陣列
-        channelImages = new Texture[maxChannel];
+        channelImages = new Texture[maxChannel]; //不包含[]裡的數字，[3]就是0,1,2
         for (int i = 0; i < maxChannel; i++)
         {
             channelImages[i] = Resources.Load<Texture>($"channelImages/TV0{i}");
         }
+
+        errorTexture = Resources.Load<Texture>("specialImages/test");
+        if (errorTexture == null)
+        {
+            Debug.LogError("錯誤圖片載入失敗");
+        }
+
+        // specialImages = new Texture[1];
+        // specialImages[0] = Resources.Load<Texture>("channelImages/error");
         // Debug.Log("關電視");
 
         meshRenderer.materials[1].mainTexture = channelImages[0];
@@ -48,7 +60,6 @@ public class switcher : MonoBehaviour
             {
                 channel = 0;
             }
-
         }
         if (Input.GetKeyDown(KeyCode.DownArrow))
         {
@@ -57,7 +68,40 @@ public class switcher : MonoBehaviour
             {
                 channel = maxChannel - 1;
             }
+        }
 
+        foreach (char c in Input.inputString)
+        {
+            if (char.IsDigit(c))
+            {
+                userInput += c;
+            }
+
+
+            if (Input.GetKeyDown(KeyCode.Return)) // enter之後才正式輸入
+            {
+                if (int.TryParse(userInput, out int inputChannel)) // 判斷輸入的字串能不能轉換為數字，可以就放進out那邊的變數
+                {
+                    if (inputChannel >= 0 && inputChannel < maxChannel)
+                    {
+                        channel = inputChannel;
+                        meshRenderer.materials[1].mainTexture = channelImages[channel];
+                        userInput = "";
+                    }
+                    else
+                    {
+                        meshRenderer.materials[1].mainTexture = errorTexture;
+
+                        Debug.Log($"輸入頻道{inputChannel}不存在");
+                        userInput = "";
+                    }
+                }
+                else
+                {
+                    Debug.Log("輸入非數字");
+                    userInput = "";
+                }
+            }
         }
     }
 }
