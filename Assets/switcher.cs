@@ -15,7 +15,8 @@ public class switcher : MonoBehaviour
     MeshRenderer meshRenderer;
     string userInput = "";
     [SerializeField] GameObject nowChannelText;
-
+    float waitTime = 2f;
+    float timer = 0f;
 
     // Start is called before the first frame update
     void Start()
@@ -32,8 +33,6 @@ public class switcher : MonoBehaviour
 
         errorTexture = Resources.Load<Texture>("specialImages/error");
 
-        // specialImages = new Texture[1];
-        // specialImages[0] = Resources.Load<Texture>("channelImages/error");
         // Debug.Log("關電視");
 
         // meshRenderer.materials[1].mainTexture = channelImages[0];
@@ -46,16 +45,16 @@ public class switcher : MonoBehaviour
         if (Input.GetKeyDown(KeyCode.UpArrow))
         {
             channel++;
-
             if (channel > maxChannel) channel = 1;
             ChannelStatus(channel);
+            timer = 0;
         }
         if (Input.GetKeyDown(KeyCode.DownArrow))
         {
             channel--;
-
             if (channel < 1) channel = maxChannel;
             ChannelStatus(channel);
+            timer = 0;
         }
 
         foreach (char c in Input.inputString)
@@ -70,6 +69,7 @@ public class switcher : MonoBehaviour
                 {
                     channel = inputChannel;
                     ChannelStatus(channel);
+                    timer = 0; // 重置計時器
                 }
                 else
                 {
@@ -81,6 +81,16 @@ public class switcher : MonoBehaviour
                 Debug.Log($"輸入{userInput}非數字");
             }
             userInput = "";
+        }
+
+        if (nowChannelText.activeSelf)
+        {
+            timer += Time.deltaTime;
+            if (timer > waitTime)
+            {
+                nowChannelText.SetActive(false);
+                timer = 0f;
+            }
         }
     }
 
