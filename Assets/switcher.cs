@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEditor.MPE;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.Video;
 
 public class switcher : MonoBehaviour
 {
@@ -11,8 +12,10 @@ public class switcher : MonoBehaviour
     int maxChannel = 15;
     int efficientChannel = 10;
     Texture[] channelImages;
+    VideoClip[] channelVideos;
     Texture errorTexture;
     MeshRenderer meshRenderer;
+    VideoPlayer videoPlayer;
     string userInput = "";
     [SerializeField] GameObject nowChannelText;
     float waitTime = 2f;
@@ -22,6 +25,7 @@ public class switcher : MonoBehaviour
     void Start()
     {
         meshRenderer = GetComponent<MeshRenderer>();
+        videoPlayer = GetComponent<VideoPlayer>();
         channel = 0;
 
         // 初始化裝圖片的陣列
@@ -29,6 +33,11 @@ public class switcher : MonoBehaviour
         for (int i = 1; i < efficientChannel; i++)
         {
             channelImages[i] = Resources.Load<Texture>($"channelImages/TV0{i}");
+        }
+        channelVideos = new VideoClip[efficientChannel];
+        for (int i = 1; i < efficientChannel; i++)
+        {
+            channelVideos[i]=Resources.Load<VideoClip>($"channelVideos/TV0{i}");
         }
 
         errorTexture = Resources.Load<Texture>("specialImages/error");
@@ -99,12 +108,15 @@ public class switcher : MonoBehaviour
         if (ch > 0 && ch < efficientChannel)
         {
             nowChannelText.SetActive(true);
-            meshRenderer.materials[1].mainTexture = channelImages[ch];
+            videoPlayer.clip = channelVideos[ch];
+            // videoPlayer.Play(); // 把指定影片放進去後還要播放才會正式開始，或者把 play awake打勾
+            // meshRenderer.materials[1].mainTexture = null;
             nowChannelText.GetComponent<Text>().text = "0" + ch;
         }
         else if (ch >= efficientChannel && ch <= maxChannel)
         {
             nowChannelText.SetActive(true);
+            videoPlayer.Stop();
             meshRenderer.materials[1].mainTexture = errorTexture;
             nowChannelText.GetComponent<Text>().text = ch.ToString();
         }
