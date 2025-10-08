@@ -13,11 +13,14 @@ public class switcher : MonoBehaviour
     int efficientChannel = 10;
     Texture[] channelImages;
     VideoClip[] channelVideos;
+    Sprite[] channelInfos;
     Texture errorTexture;
+    Texture blackTexture;
     MeshRenderer meshRenderer;
     VideoPlayer videoPlayer;
     string userInput = "";
     [SerializeField] GameObject nowChannelText;
+    [SerializeField] GameObject channelInfo;
     float waitTime = 2f;
     float timer = 0f;
 
@@ -37,10 +40,12 @@ public class switcher : MonoBehaviour
         channelVideos = new VideoClip[efficientChannel];
         for (int i = 1; i < efficientChannel; i++)
         {
-            channelVideos[i]=Resources.Load<VideoClip>($"channelVideos/TV0{i}");
+            channelVideos[i] = Resources.Load<VideoClip>($"channelVideos/TV0{i}");
         }
 
         errorTexture = Resources.Load<Texture>("specialImages/error");
+        blackTexture = Resources.Load<Texture>("specialImages/blackBG");
+        // channelInfos = Resources.Load<Textur>("channelImages/TV02");
 
         // Debug.Log("關電視");
 
@@ -98,6 +103,7 @@ public class switcher : MonoBehaviour
             if (timer > waitTime)
             {
                 nowChannelText.SetActive(false);
+                channelInfo.SetActive(false);
                 timer = 0f;
             }
         }
@@ -105,20 +111,32 @@ public class switcher : MonoBehaviour
 
     void ChannelStatus(int ch)
     {
+        nowChannelText.SetActive(true);
+        nowChannelText.GetComponent<Text>().text = ch < 10 ? "0" + ch : ch.ToString();
+        videoPlayer.Stop();
+
+
         if (ch > 0 && ch < efficientChannel)
         {
-            nowChannelText.SetActive(true);
-            videoPlayer.clip = channelVideos[ch];
-            // videoPlayer.Play(); // 把指定影片放進去後還要播放才會正式開始，或者把 play awake打勾
-            // meshRenderer.materials[1].mainTexture = null;
-            nowChannelText.GetComponent<Text>().text = "0" + ch;
+            channelInfo.SetActive(true); // 要觀察一下是不是電視切換節目表會一直在，還是會先消失切換才又再出現
+            channelInfo.GetComponent<Image>().sprite = Resources.Load<Sprite>("channelInfos/TV00" + ch);
+
+            StartCoroutine(playwithDelay(ch));
         }
         else if (ch >= efficientChannel && ch <= maxChannel)
         {
-            nowChannelText.SetActive(true);
-            videoPlayer.Stop();
+            channelInfo.SetActive(false);
+
             meshRenderer.materials[1].mainTexture = errorTexture;
-            nowChannelText.GetComponent<Text>().text = ch.ToString();
         }
+    }
+
+    IEnumerator playwithDelay(int ch)
+    {
+        meshRenderer.materials[1].mainTexture = blackTexture;
+        videoPlayer.clip = channelVideos[ch];
+
+        yield return new WaitForSeconds(0.5f);
+        videoPlayer.Play(); // 把指定影片放進去後還要播放才會正式開始 or 打勾play on awake
     }
 }
