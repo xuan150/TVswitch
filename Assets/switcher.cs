@@ -13,10 +13,9 @@ public class switcher : MonoBehaviour
     public int channel;
     int maxChannel = 150;
     int efficientChannel = 11;
-    Texture[] channelImages;
     VideoClip[] channelVideos;
     Sprite[] channelInfos;
-    Texture errorTexture;
+    VideoClip errorVideo;
     Texture blackTexture;
     MeshRenderer meshRenderer;
     VideoPlayer videoPlayer;
@@ -26,13 +25,16 @@ public class switcher : MonoBehaviour
     [SerializeField] GameObject userIn;
     float waitTime = 2f;
     float timer = 0f;
+    bool isTVOn = false;
 
     // Start is called before the first frame update
     void Start()
     {
+        isTVOn = false;
+
         meshRenderer = GetComponent<MeshRenderer>();
         videoPlayer = GetComponent<VideoPlayer>();
-        channel = 1;
+        // channel = 1;
 
         channelInfos = new Sprite[maxChannel + 1]; //不包含[]裡的數字，[3]就是0,1,2
         for (int i = 2; i < maxChannel + 1; i++)
@@ -64,17 +66,40 @@ public class switcher : MonoBehaviour
             }
         }
 
-        errorTexture = Resources.Load<Texture>("specialImages/error");
+
+        errorVideo = Resources.Load<VideoClip>("specialImages/test");
         blackTexture = Resources.Load<Texture>("specialImages/blackBG");
-
+        timer = 0f;
         // Debug.Log("關電視");
-
-        // meshRenderer.materials[1].mainTexture = channelImages[0];
     }
 
     // Update is called once per frame
     void Update()
     {
+        if (Input.GetKeyDown(KeyCode.Space))
+        {
+            isTVOn = !isTVOn;
+            if (isTVOn)
+            {
+                if (channel < 2) channel = 2;
+                ChannelStatus(channel);
+            }
+            else
+            {
+                videoPlayer.Stop();
+                meshRenderer.materials[1].mainTexture = blackTexture;
+                nowChannelText.SetActive(false);
+                channelInfo.SetActive(false);
+                userIn.GetComponent<Text>().text = "";
+                userInput = "";
+                timer = 0f;
+            }
+        }
+        if (!isTVOn)
+        {
+            return;
+        }
+
         // 因為getkey會頻繁偵測輸入狀態，可能會造成閃爍以及切換亂掉的狀態，所以改用getkeydown
         if (Input.GetKeyDown(KeyCode.UpArrow))
         {
@@ -153,21 +178,6 @@ public class switcher : MonoBehaviour
         meshRenderer.materials[1].mainTexture = blackTexture;
         StartCoroutine(playwithDelay(ch));
 
-        // if (ch > 1 && ch < efficientChannel)
-        // {
-        //     channelInfo.SetActive(true);
-        //     channelInfo.GetComponent<Image>().sprite = channelInfos[ch];
-
-        //     StartCoroutine(playwithDelay(ch));
-        // }
-        // else if (ch >= efficientChannel && ch <= maxChannel)
-        // {
-        //     channelInfo.SetActive(true);
-        //     channelInfo.GetComponent<Image>().sprite = ch < 16 ? Resources.Load<Sprite>("channelInfos/TV0" + ch) : null;
-        //     // await Task.Delay(500); //非同步等待
-
-        //     StartCoroutine(playwithDelay(ch));
-        // }
     }
 
     IEnumerator playwithDelay(int ch) //協程等待機制，不會擋住主程式行動
@@ -182,8 +192,11 @@ public class switcher : MonoBehaviour
         }
         else
         {
+            videoPlayer.clip = errorVideo;
+
             yield return new WaitForSeconds(0.5f);
-            meshRenderer.materials[1].mainTexture = errorTexture;
+            videoPlayer.Play();
+
         }
     }
     // 如果不想用協程，也可以在主程式裡搭配async + await Task.Delay(毫秒)來達成等待
