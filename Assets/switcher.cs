@@ -34,10 +34,21 @@ public class switcher : MonoBehaviour
         videoPlayer = GetComponent<VideoPlayer>();
         channel = 1;
 
-        channelInfos = new Sprite[efficientChannel]; //不包含[]裡的數字，[3]就是0,1,2
-        for (int i = 2; i < efficientChannel; i++)
+        channelInfos = new Sprite[maxChannel + 1]; //不包含[]裡的數字，[3]就是0,1,2
+        for (int i = 2; i < maxChannel + 1; i++)
         {
-            channelInfos[i] = Resources.Load<Sprite>($"channelInfos/TV00{i}");
+            switch (i)
+            {
+                case < 10:
+                    channelInfos[i] = Resources.Load<Sprite>($"channelInfos/TV00{i}");
+                    break;
+                case < 100:
+                    channelInfos[i] = Resources.Load<Sprite>($"channelInfos/TV0{i}");
+                    break;
+                default:
+                    channelInfos[i] = Resources.Load<Sprite>($"channelInfos/TV{i}");
+                    break;
+            }
         }
         channelVideos = new VideoClip[efficientChannel];
         for (int i = 2; i < efficientChannel; i++)
@@ -137,31 +148,30 @@ public class switcher : MonoBehaviour
         }
         videoPlayer.Stop();
 
+        channelInfo.SetActive(true);
+        channelInfo.GetComponent<Image>().sprite = channelInfos[ch];
+        meshRenderer.materials[1].mainTexture = blackTexture;
+        StartCoroutine(playwithDelay(ch));
 
-        if (ch > 1 && ch < efficientChannel)
-        {
-            channelInfo.SetActive(true);
-            channelInfo.GetComponent<Image>().sprite = ch < 10 ? Resources.Load<Sprite>("channelInfos/TV00" + ch) : Resources.Load<Sprite>("channelInfos/TV0" + ch);
-            meshRenderer.materials[1].mainTexture = blackTexture;
-            videoPlayer.clip = channelVideos[ch];
+        // if (ch > 1 && ch < efficientChannel)
+        // {
+        //     channelInfo.SetActive(true);
+        //     channelInfo.GetComponent<Image>().sprite = channelInfos[ch];
 
-            StartCoroutine(playwithDelay(ch));
-        }
-        else if (ch >= efficientChannel && ch <= maxChannel)
-        {
-            channelInfo.SetActive(true);
-            channelInfo.GetComponent<Image>().sprite = ch < 16 ? Resources.Load<Sprite>("channelInfos/TV0" + ch) : null;
-            meshRenderer.materials[1].mainTexture = blackTexture;
+        //     StartCoroutine(playwithDelay(ch));
+        // }
+        // else if (ch >= efficientChannel && ch <= maxChannel)
+        // {
+        //     channelInfo.SetActive(true);
+        //     channelInfo.GetComponent<Image>().sprite = ch < 16 ? Resources.Load<Sprite>("channelInfos/TV0" + ch) : null;
+        //     // await Task.Delay(500); //非同步等待
 
-            // await Task.Delay(500); //非同步等待
-
-            StartCoroutine(playwithDelay(ch));
-        }
+        //     StartCoroutine(playwithDelay(ch));
+        // }
     }
 
     IEnumerator playwithDelay(int ch) //協程等待機制，不會擋住主程式行動
     {
-        meshRenderer.materials[1].mainTexture = blackTexture;
         if (ch > 1 && ch < efficientChannel)
         {
             videoPlayer.clip = channelVideos[ch];
