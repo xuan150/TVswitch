@@ -56,5 +56,5 @@
         "temp/": true,
         "Temp/": true
     },
-    "dotnet.defaultSolution": "TVswitcher.sln"
+    "dotnet.defaultSolution": "TVswitcher.slnx"
 }
